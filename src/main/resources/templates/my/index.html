@@ -1,0 +1,102 @@
+<div th:replace="~{my/_head.html}"></div>
+    <main>
+            
+        <div class="board">
+            <div class="my-left">
+                <div class="my-info">
+                    <img th:src="@{/images/my/myIcon.png}">
+                    <div class="my-info-data">
+                        <div class="my-name">
+                            <h2>홍길동 <span>고객님</span></h2>
+                        </div>
+                        <div class="my-remain">
+                            <p>로그인 ID <span>a10101010</span></p>
+                           <p>전화번호 <span>010-1111-1111</span></p>
+                         <p>최근 접속 시간 <span>2025-11-03 12:33:54</span></p>
+
+                        </div>
+                        
+                    </div>
+                </div>
+                <a th:href="@{/my/items}" class="my-items">나의 금융 상품 　〉</a>
+                <div class="my-setting">
+                    <a th:href="@{/my/modify}"><svg xmlns="http://www.w3.org/2000/svg" color="white" width="24" height="24" viewBox="0 0 24 24" fill="#C73034" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>설정</a>
+                </div>
+
+            </div>
+            <div class="my-right">
+
+                <div class="first-area">
+                    <p class="welcome-msg">
+                        <strong>홍길동</strong>님과 부산은행이 함께한 지 <span>22일째</span>입니다.
+                    </p>
+
+                    <div class="my-list-area">
+                        <div class="list-puls">
+                            <h2>나의 금융상품 현황</h2>
+                        </div>
+        
+                        <div class="item-card">
+                            <p>가입한 상품: 3건</p>
+                            <p>총 예치금: 10,000,000원</p>
+                            <p>최근 가입일: 2025-11-11</p>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+                <div class="my-list-area">
+                    <div class="list-puls">
+                        <h2>문의내역</h2>
+                        <a href="#">더보기　 〉</a>
+                    </div>
+     
+                        <table class="list-table">
+                              <colgroup>
+                                <col width="10%">
+                                <col width="70%"> <!-- 제목 열 -->
+                                <col width="20%">
+                            </colgroup>
+                            <tr>
+                                <th>번호</th>
+                                <th>제목</th>
+                                <th>등록일</th>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>상품 가입하고 싶어요</td>
+                                <td>2025-11-11</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>상품 가입하고 싶어요</td>
+                                <td>2025-11-11</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>상품 가입하고 싶어요</td>
+                                <td>2025-11-11</td>
+                            </tr>
+                        </table>
+
+                </div>
+                <div class="my-contents-area">
+                    <div class="my-contents">
+                        <a href="#">
+                            컨텐츠 바로가기(추후 추가)
+                        </a>
+                    </div>
+                    <div class="my-contents">
+                        <a href="#">
+                            컨텐츠 바로가기(추후 추가)
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+            
+        </div>
+    
+    </main>
+<div th:replace="~{my/_tail.html}"></div>
