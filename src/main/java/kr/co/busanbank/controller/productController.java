@@ -1,11 +1,13 @@
 package kr.co.busanbank.controller;
 
+import kr.co.busanbank.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @Slf4j
@@ -13,18 +15,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/prod")
 public class productController {
 
+    private final ProductService productService;
+
     // 화면띄우는 실험용 컨트롤러
     @GetMapping("/index")
     public String index(Model model) {
         return  "product/productJoinStage/productindex";
     }
 
+
     // 상품리스트 - 전체 메인페이지
     @GetMapping("/list/main")
     public String list(Model model) {
-        return  "product/productMain";
+        return "product/productMain";
     }
-
 
     // 상품리스트 - 자유예금
     @GetMapping("/list/freedepwith")
@@ -61,13 +65,6 @@ public class productController {
         return "product/smartFinance";
     }
 
-
-    // 상품상세정보
-    @GetMapping("/view")
-    public String view(Model model) {
-        return  "product/prodView";
-    }
-
     // 회원상품가입
     // STEP 1: 각종 동의
     @GetMapping("/productjoin")
@@ -97,4 +94,22 @@ public class productController {
         return "product/productJoinStage/registerstep04";  // templates/product/productJoinStage/registerstep04.html
     }
 
+    // 상품 상세
+    @GetMapping("/view")
+    public String view(@RequestParam("id") int id, Model model) {
+        return "product/prodView";
+    }
+
+
+    // ★ 키워드 검색
+    @GetMapping("/search")
+    public String search(@RequestParam("keyword") String keyword, Model model) {
+
+        log.info("키워드 검색 keyword = {}", keyword);
+
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("products", productService.searchProducts(keyword));
+
+        return "product/productSearchResult";
+    }
 }
