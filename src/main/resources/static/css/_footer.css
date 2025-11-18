@@ -10,7 +10,7 @@
     display: flex;
     justify-content: start;
     margin-bottom: 20px;
-    gap: 30px;
+    gap: 25px;
 
     font-size: 14px;
     font-weight: 700;
@@ -38,8 +38,15 @@
 }
 
 .f-copy {
-    font-size: 13px;
+    margin-bottom: 10px;
+    font-size: 14px;
     font-weight: 300;
+}
+
+.snapShot {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--grey-700);
 }
 
 /* Top 버튼 */
