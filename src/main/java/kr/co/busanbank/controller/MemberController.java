@@ -1,3 +1,8 @@
+/*
+    날짜 : 2025/11/21
+    이름 : 오서정
+    내용 : 회원 기능 처리 컨트롤러 작성
+*/
 package kr.co.busanbank.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -278,6 +283,30 @@ public class MemberController {
     @GetMapping("/chatbot")
     public String chatbot() {
         return "member/chatbotTest";
+    }
+
+
+    /**
+     *  상품 가입용 SMS/이메일 인증 검증 API
+     */
+    @PostMapping("/hp/verify")
+    @ResponseBody
+    public ResponseEntity<Map<String, Boolean>> verifyHp(@RequestBody Map<String,String> req) {
+        String code = req.get("code");
+        boolean verified = hpService.verifyCode(code);
+
+        Map<String, Boolean> result = Map.of("verified", verified);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/email/verify")
+    @ResponseBody
+    public ResponseEntity<Map<String, Boolean>> verifyEmail(@RequestBody Map<String,String> req) {
+        String code = req.get("code");
+        boolean verified = emailService.verifyCode(code);
+
+        Map<String, Boolean> result = Map.of("verified", verified);
+        return ResponseEntity.ok(result);
     }
 
 

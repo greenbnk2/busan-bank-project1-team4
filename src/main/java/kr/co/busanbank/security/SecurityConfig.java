@@ -30,6 +30,12 @@ public class SecurityConfig {
     @Autowired
     private CustomAccessDeniedHandler customAccessDeniedHandler;
 
+    @Autowired
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+    @Autowired
+    private CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+
     private final CustomLoginSuccessHandler successHandler = new CustomLoginSuccessHandler();
     private final AdminLoginSuccessHandler adminSuccessHandler = new AdminLoginSuccessHandler();
     // 자동 로그인
@@ -87,8 +93,8 @@ public class SecurityConfig {
                         .loginPage("/admin/login")
                         .usernameParameter("loginId")
                         .passwordParameter("password")
-                        .successHandler(adminSuccessHandler)
-                        .failureUrl("/admin/login?error=true")
+                        .successHandler(customAuthenticationSuccessHandler)
+                        .failureHandler(customAuthenticationFailureHandler)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/admin/logout")
@@ -112,10 +118,12 @@ public class SecurityConfig {
 
         http
                 .authenticationManager(memberAuthManager)
-                .securityMatcher("/member/**", "/my/**")
+                .securityMatcher("/member/**", "/my/**", "/cs/customerSupport/login/**")
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/member/**").permitAll()
                         .requestMatchers("/my/**").hasRole("USER")
+                        .requestMatchers("/cs/customerSupport/login/**").hasRole("USER")
+
                 )
                 .formLogin(form -> form
                         .loginPage("/member/login")

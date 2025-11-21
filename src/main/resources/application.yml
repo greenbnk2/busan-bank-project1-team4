@@ -16,7 +16,7 @@ server:
 spring:
   application:
     name: Busanbank
-    version: 0.0.5-SNAPSHOT
+    version: 0.0.6-SNAPSHOT
   datasource:
     driver-class-name: oracle.jdbc.driver.OracleDriver
     url: jdbc:oracle:thin:@34.158.204.102:1521/XEPDB1
@@ -54,6 +54,10 @@ spring:
             enable: true
           ssl:
             trust: smtp.gmail.com
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
   solapi:
     api:
       key: ${SOLAPI_KEY:default_value}
@@ -64,6 +68,11 @@ spring:
     api:
       api-key: ${YOUTUBE_API_KEY}
       playlist-id: "PLZGDyqLjHoLQpBJ59m1lRHGP__TCvSDF2"
+
+  gemini:
+    api:
+      key: ${GEMINI_KEY:default_value}
+
 
   security:
     user:
@@ -110,6 +119,14 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
+coin:
+  api:
+    key: 648e877816884b0fb17a020082e40d2f
+
+gold:
+  api:
+    key: 59bc0415bb3e4270fce2393e2d74b9d3
 
 file:
   upload:
