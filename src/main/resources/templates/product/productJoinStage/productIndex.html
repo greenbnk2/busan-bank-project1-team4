@@ -17,7 +17,7 @@
         /* ---------------------------------- */
         .content-area {
             min-height: 60vh;
-            padding: 50px 0;
+            padding: 50px 0;카테고리 관리 Mapper
             display: flex;
             justify-content: center;
         }
@@ -512,7 +512,7 @@
 </div>
 
 <!-- Footer 부분 -->
-<div th:replace="~{_footer :: footerFragment}"></div>
+<div th:replace="~{_footer :: footerFragment(${appInfo})}"></div>
 
 <script>
     window.BASE_URL = /*[[@{/}]]*/ "/busanbank/";

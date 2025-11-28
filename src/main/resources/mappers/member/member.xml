@@ -66,6 +66,16 @@
     </select>
 
 
+    <select id="getTermsAll" resultType="kr.co.busanbank.dto.TermDTO">
+        select termno, termtype, termtitle, termcontent
+        from term
+    </select>
 
+    <!-- 계좌암호화 비교를 위한 쿼리 - ★★★ 2025/11/27 수진 ★★★ -->
+    <select id="findAccountPasswordByUserNo" resultType="String">
+        SELECT accountPassword
+        FROM USERS
+        WHERE userNo = #{userNo}
+    </select>
 
 </mapper>

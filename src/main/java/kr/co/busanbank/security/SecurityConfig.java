@@ -27,6 +27,15 @@ public class SecurityConfig {
     @Autowired
     private AdminUserDetailsService adminUserDetailsService;
 
+    @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    @Autowired
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+    @Autowired
+    private CustomAuthenticationFailureHandler customAuthenticationFailureHandler;
+
     private final CustomLoginSuccessHandler successHandler = new CustomLoginSuccessHandler();
     private final AdminLoginSuccessHandler adminSuccessHandler = new AdminLoginSuccessHandler();
     // 자동 로그인
@@ -66,20 +75,25 @@ public class SecurityConfig {
                 .authenticationManager(adminAuthManager)
                 .securityMatcher("/admin/**")
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/uploads/**").permitAll() // 정적 리소스 (작성자: 진원, 2025-11-24) , 이미지 경로 허용(작성자: 윤종인, 2025-11-27)
                         .requestMatchers("/admin/login").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // 모든 관리 기능: 일반관리자와 최고관리자만 (작성자: 진원, 2025-11-24)
+                        .anyRequest().hasAnyAuthority("최고관리자", "일반관리자")
                 )
                 .formLogin(form -> form
                         .loginPage("/admin/login")
                         .usernameParameter("loginId")
                         .passwordParameter("password")
-                        .successHandler(adminSuccessHandler)
-                        .failureUrl("/admin/login?error=true")
+                        .successHandler(customAuthenticationSuccessHandler)
+                        .failureHandler(customAuthenticationFailureHandler)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/admin/logout")
                         .invalidateHttpSession(true)
                         .logoutSuccessUrl("/admin/login?logout=true")
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .csrf(csrf -> csrf.disable());
 
@@ -95,10 +109,17 @@ public class SecurityConfig {
 
         http
                 .authenticationManager(memberAuthManager)
-                .securityMatcher("/member/**", "/my/**")
+                .securityMatcher("/member/**", "/my/**", "/cs/customerSupport/login/**", "/quiz/**", "/api/quiz/**")
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/uploads/**").permitAll() // 정적 리소스 (작성자: 진원, 2025-11-24)
                         .requestMatchers("/member/**").permitAll()
+                        .requestMatchers("/quiz/**").permitAll() // 퀴즈 페이지 접근 허용 (작성자: 진원, 2025-11-24)
+                        .requestMatchers("/api/quiz/ranking").permitAll() // 랭킹 API 공개 (작성자: 진원, 2025-11-25)
+                        .requestMatchers("/api/quiz/**").hasRole("USER") // 퀴즈 API는 로그인 필요 (작성자: 진원, 2025-11-24)
                         .requestMatchers("/my/**").hasRole("USER")
+                        .requestMatchers("/cs/chat/**").hasRole("CONSULTANT")// 상담원
+                        .requestMatchers("/cs/customerSupport/login/**").hasRole("USER")
+
                 )
                 .formLogin(form -> form
                         .loginPage("/member/login")
@@ -111,18 +132,22 @@ public class SecurityConfig {
                         .logoutUrl("/member/logout")
                         .invalidateHttpSession(true)
                         .logoutSuccessUrl("/member/login?logout=true")
+                ).sessionManagement(session -> session
+                        .maximumSessions(1)
+                        .expiredUrl("/member/login?expired=true")
                 )
                 .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
 
-
     @Bean
     @Order(3)
     public SecurityFilterChain commonSecurity(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/uploads/**").permitAll() // 정적 리소스 (작성자: 진원, 2025-11-24)
+                        .anyRequest().permitAll())
                 .csrf(csrf -> csrf.disable());
 
         return http.build();

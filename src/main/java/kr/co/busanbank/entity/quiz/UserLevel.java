@@ -5,8 +5,15 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * 작성자: 진원
+ * 작성일: 2025-11-24
+ * 설명: 사용자 레벨 엔티티
+ * - 포인트 및 레벨 정보 저장
+ * - 레벨별 예금 이자 혜택 제공
+ */
 @Entity
-@Table(name = "user_level")
+@Table(name = "USERLEVEL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,31 +23,32 @@ public class UserLevel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "LEVELID")
     private Long levelId;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "USERID", nullable = false, unique = true)
     private Long userId;
 
-    @Column(nullable = false)
+    @Column(name = "TOTALPOINTS", nullable = false)
     @Builder.Default
     private Integer totalPoints = 0;
 
-    @Column(nullable = false)
+    @Column(name = "CURRENTLEVEL", nullable = false)
     @Builder.Default
     private Integer currentLevel = 1; // 1=Rookie, 2=Analyst, 3=Banker
 
-    @Column(length = 50)
+    @Column(name = "TIER", length = 50)
     @Builder.Default
     private String tier = "Rookie"; // Rookie, Analyst, Banker
 
-    @Column(precision = 3, scale = 2)
+    @Column(name = "INTERESTBONUS", precision = 3, scale = 2)
     @Builder.Default
     private BigDecimal interestBonus = new BigDecimal("0.00"); // +0.1%, +0.2%
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "CREATEDDATE", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
-    @Column(nullable = false)
+    @Column(name = "UPDATEDDATE", nullable = false)
     private LocalDateTime updatedDate;
 
     @PrePersist

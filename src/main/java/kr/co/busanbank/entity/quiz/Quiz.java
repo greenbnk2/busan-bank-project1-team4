@@ -7,8 +7,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 작성자: 진원
+ * 작성일: 2025-11-24
+ * 설명: 퀴즈 엔티티
+ * - 금융 관련 퀴즈 정보 저장
+ * - 카테고리: FINANCE, INVESTMENT, SAVINGS, CREDIT, LOAN
+ * - 난이도: EASY, MEDIUM, HARD
+ */
 @Entity
-@Table(name = "quiz")
+@Table(name = "QUIZ")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,30 +26,31 @@ public class Quiz {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "QUIZID")
     private Long quizId;
 
-    @Column(nullable = false, length = 500)
+    @Column(name = "QUESTION", nullable = false, length = 500)
     private String question;
 
-    @Column(columnDefinition = "CLOB", nullable = false)
+    @Column(name = "OPTIONSJSON", columnDefinition = "CLOB", nullable = false)
     private String optionsJson; // JSON 문자열로 저장
 
-    @Column(nullable = false)
+    @Column(name = "CORRECTANSWER", nullable = false)
     private Integer correctAnswer;
 
-    @Column(length = 1000)
+    @Column(name = "EXPLANATION", length = 1000)
     private String explanation;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "CATEGORY", nullable = false, length = 50)
     private String category; // FINANCE, INVESTMENT, SAVINGS, CREDIT, LOAN
 
-    @Column(nullable = false)
+    @Column(name = "DIFFICULTY", nullable = false)
     private Integer difficulty; // 1~5
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "CREATEDDATE", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
-    @Column
+    @Column(name = "UPDATEDDATE")
     private LocalDateTime updatedDate;
 
     @PrePersist

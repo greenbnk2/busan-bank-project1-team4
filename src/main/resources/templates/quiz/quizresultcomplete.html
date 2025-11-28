@@ -1,17 +1,23 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>결과 - BNK부산은행</title>
+    <title>퀴즈 결과 - BNK부산은행</title>
 
     <link rel="stylesheet" th:href="@{/css/common/style_common.css}">
     <link rel="stylesheet" th:href="@{/css/common/style_font.css}">
-    <link rel="stylesheet" th:href="@{/css/common/xeicon.css}">
+    <link href="//cdn.jsdelivr.net/xeicon/2/xeicon.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/_header.css}">
     <link rel="stylesheet" th:href="@{/css/_footer.css}">
+    <link rel="stylesheet" th:href="@{/css/member/AutoLogout.css}">
 
-    <script th:src="@{/js/_header.js}" defer></script>
+    <script th:src="@{/js/gnbDropdown.js}" defer></script>
+    <script th:src="@{/js/translate.js}" defer></script>
+    <script th:src="@{/js/globalBtn.js}" defer></script>
+    <script th:src="@{/js/searchOverlay.js}" defer></script>
+    <script th:src="@{/js/member/session-timer.js}" defer></script>
 
     <style>
         main {
@@ -19,16 +25,23 @@
             padding: 40px 0;
         }
 
-        .container {
+        /* 퀴즈 페이지의 main 영역만 900px로 제한 */
+        main .container {
             max-width: 900px;
             margin: 0 auto;
             padding: 0 20px;
+            position: relative;
         }
 
         .result-container {
+            display: block;
+        }
+
+        .result-main {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
+            width: 100%;
         }
 
         .result-card {
@@ -288,11 +301,161 @@
             transition: width 0.3s ease;
         }
 
-        @media (max-width: 768px) {
-            .result-container {
-                grid-template-columns: 1fr;
+        .ranking-sidebar {
+            position: fixed;
+            right: 20px;
+            top: 200px;
+            width: 320px;
+            max-height: calc(100vh - 220px);
+            overflow-y: auto;
+        }
+
+        .ranking-sidebar .result-card {
+            margin: 0;
+        }
+
+        .ranking-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #F0F0F0;
+            transition: background 0.2s;
+        }
+
+        .ranking-item:hover {
+            background: #FFF9F9;
+        }
+
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank-number {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .rank-number.top-1 {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: white;
+            font-size: 18px;
+        }
+
+        .rank-number.top-2 {
+            background: linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 100%);
+            color: white;
+            font-size: 16px;
+        }
+
+        .rank-number.top-3 {
+            background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+            color: white;
+            font-size: 16px;
+        }
+
+        .rank-number.others {
+            background: #F5F5F5;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .ranking-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ranking-user {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ranking-details {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .ranking-tier {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .ranking-tier.rookie {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+
+        .ranking-tier.analyst {
+            background: #F3E5F5;
+            color: #7B1FA2;
+        }
+
+        .ranking-tier.banker {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .ranking-points {
+            color: #E1545A;
+            font-weight: bold;
+        }
+
+        .tier-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .tier-badge.rookie {
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+            color: #1976D2;
+        }
+
+        .tier-badge.analyst {
+            background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
+            color: #7B1FA2;
+        }
+
+        .tier-badge.banker {
+            background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+            color: #E65100;
+        }
+
+        @media (max-width: 1400px) {
+            .ranking-sidebar {
+                position: static;
+                width: 100%;
+                max-height: none;
+                margin-top: 30px;
             }
 
+            .result-main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
             .result-summary h1 {
                 font-size: 36px;
             }
@@ -310,326 +473,378 @@
 
 <body>
 <!-- Header -->
-<section>
-    <article class="util">
-        <div class="container util_row">
-            <a href="/" class="util_logo_link">
-                <img class="util_logo" th:src="@{/images/main/Busanbank_logo.png}" alt="BNK부산은행">
-            </a>
-            <div class="util_spacer"></div>
-            <a href="#">로그인</a>
-            <a href="#">고객센터</a>
-            <a href="#">은행소개</a>
-            <a href="#">Global <i class="xi-caret-down-min"></i></a>
-            <i class="xi-search"></i>
-        </div>
-    </article>
-
-    <article class="gnb">
-        <div class="container gnb_row">
-            <nav class="menu">
-                <div class="menu-item" data-menu="예금상품">
-                    <a href="#" class="menu-active">예금상품</a>
-                    <div class="submenu">
-                        <a href="#">전체상품</a>
-                        <a href="#">입출금자유</a>
-                        <a href="#">일임형 ISA</a>
-                        <a href="#">목돈만들기</a>
-                        <a href="#">목돈굴리기</a>
-                        <a href="#">주택마련</a>
-                        <a href="#">스마트금융전용</a>
-                        <a href="#">세테크</a>
-                        <a href="#">복합금융상품</a>
-                        <a href="#">판매중지상품</a>
-                    </div>
-                </div>
-
-                <div class="menu-item" data-menu="예금이용가이드">
-                    <a href="#">예금이용가이드</a>
-                    <div class="submenu">
-                        <a href="#">금융소득종합과세</a>
-                        <a href="#">예금 FAQ</a>
-                    </div>
-                </div>
-
-                <div class="menu-item" data-menu="금융서비스">
-                    <a href="#">금융서비스</a>
-                    <div class="submenu">
-                        <a href="#">금융 감정 분석</a>
-                        <a href="#">주거래고객우대통장</a>
-                        <a href="#">예금보험제도</a>
-                        <a href="#">증권계좌개설서비스</a>
-                        <a href="#">대여금고이용안내</a>
-                        <a href="#">전자어음이용안내</a>
-                    </div>
-                </div>
-            </nav>
-
-            <div class="gnb_text">
-                <a href="#">금융을 편리하게. 미래를 풍요롭게.</a>
-            </div>
-        </div>
-    </article>
-
-    <article class="gnb_sub">
-        <div class="container gnb_sub_row">
-            <a href="#" class="breadcrumb">금융상식 퀘스트<i class="xi-angle-right-min"></i></a>
-        </div>
-    </article>
-</section>
+<div th:replace="~{_header :: headerFragment}"></div>
 
 <!-- MAIN -->
 <main>
     <div class="container">
         <div class="result-container">
-            <!-- 결과 요약 -->
-            <div class="result-card result-summary">
-                <span class="confetti">🎉</span>
-                <h1 id="finalScore">30</h1>
-                <p>이번 퀘스트에서 획득한 점수</p>
-                <div class="badge-group">
-                    <div class="badge" id="levelUpBadge" style="display: none;">
-                        🚀 레벨 업!
+            <div class="result-main">
+                <!-- 결과 요약 -->
+                <div class="result-card result-summary">
+                    <span class="confetti">🎉</span>
+                    <h1 id="finalScore">로딩중...</h1>
+                    <p>이번 퀘스트에서 획득한 점수</p>
+                    <div class="badge-group">
+                        <div class="badge" id="levelUpBadge" style="display: none;">
+                            🚀 레벨 업!
+                        </div>
+                        <div class="badge">
+                            ⭐ <span id="earnedPoints">로딩중...</span> 획득
+                        </div>
                     </div>
-                    <div class="badge">
-                        ⭐ <span id="earnedPoints">30</span>P 획득
+                </div>
+
+                <!-- 오늘의 퀴즈 결과 -->
+                <div class="result-card">
+                    <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #E1545A; padding-bottom: 10px;">
+                        📊 오늘의 퀴즈 결과
+                    </h2>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-box-label">오늘 정답 개수</div>
+                            <div class="stat-box-value" id="correctCount">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-box-label">오늘 오답 개수</div>
+                            <div class="stat-box-value" id="incorrectCount">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-box-label">오늘 정답률</div>
+                            <div class="stat-box-value" id="correctRate">-<span style="font-size: 16px;"></span>%</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-box-label">소요 시간</div>
+                            <div class="stat-box-value" id="timeSpent">-</div>
+                        </div>
                     </div>
+                </div>
+
+                <!-- 누적 통계 -->
+                <div class="result-card">
+                    <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #E1545A; padding-bottom: 10px;">
+                        🏆 누적 통계
+                    </h2>
+
+                    <div class="result-stat">
+                        <h3>총 포인트</h3>
+                        <div class="stat-value">
+                            <span class="number" id="totalPoints">-</span>
+                            <span class="unit">P</span>
+                        </div>
+                    </div>
+
+                    <div class="result-stat">
+                        <h3>현재 레벨</h3>
+                        <div style="display: flex; gap: 10px; margin-top: 8px;">
+                            <span class="tier-badge" id="tierBadge">새싹</span>
+                        </div>
+                    </div>
+
+                    <div class="result-stat">
+                        <h3>누적 정답/오답</h3>
+                        <div style="display: flex; gap: 15px; margin-top: 8px; font-size: 18px;">
+                            <span style="color: #4CAF50;">✓ <span id="cumulativeCorrect">-</span>개</span>
+                            <span style="color: #F44336;">✗ <span id="cumulativeIncorrect">-</span>개</span>
+                        </div>
+                    </div>
+
+                    <div class="result-stat">
+                        <h3>전체 정답률</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="overallProgressFill" style="width: 85%;">85%</div>
+                        </div>
+                    </div>
+
+                    <div id="levelUpInfo" class="level-info" style="display: none;">
+                        <div class="level-info-title">🎊 축하합니다! 레벨이 상승했습니다!</div>
+                        <div class="level-info-text" id="levelUpMessage">
+                            Analyst 레벨에 도달했습니다! 예금이자 +0.1% 혜택권을 획득했습니다.
+                        </div>
+                    </div>
+
+                    <div id="nextLevelInfo" class="next-level-info">
+                        <div class="next-level-info-title">📈 다음 레벨까지</div>
+                        <div class="next-level-progress">
+                            <div class="next-level-fill" id="nextLevelFill" style="width: 56%;"></div>
+                        </div>
+                        <div style="margin-top: 8px; color: #1565C0; font-size: 12px;">
+                            필요: <span id="pointsNeeded">20</span>P
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 버튼 -->
+                <div class="button-section">
+                    <button class="btn btn-secondary" id="backBtn">← 돌아가기</button>
+                    <button class="btn btn-primary" id="retakeBtn">다시 풀기 →</button>
                 </div>
             </div>
 
-            <!-- 상세 통계 -->
-            <div class="result-card">
-                <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #E1545A; padding-bottom: 10px;">
-                    📊 상세 통계
-                </h2>
-
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <div class="stat-box-label">정답 개수</div>
-                        <div class="stat-box-value" id="correctCount">3</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-box-label">오답 개수</div>
-                        <div class="stat-box-value" id="incorrectCount">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-box-label">정답률</div>
-                        <div class="stat-box-value" id="correctRate">100<span style="font-size: 16px;">%</span></div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-box-label">소요 시간</div>
-                        <div class="stat-box-value" id="timeSpent">3:42</div>
-                    </div>
+            <!-- 랭킹 사이드바 -->
+            <div class="ranking-sidebar">
+                <div class="result-card">
+                    <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #E1545A; padding-bottom: 10px;">
+                        🏆 실시간 TOP 10
+                    </h2>
+                    <ul class="ranking-list" id="rankingList">
+                        <li class="ranking-item">로딩 중...</li>
+                    </ul>
                 </div>
-            </div>
-
-            <!-- 누적 통계 -->
-            <div class="result-card">
-                <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #E1545A; padding-bottom: 10px;">
-                    🏆 누적 통계
-                </h2>
-
-                <div class="result-stat">
-                    <h3>총 포인트</h3>
-                    <div class="stat-value">
-                        <span class="number" id="totalPoints">480</span>
-                        <span class="unit">P</span>
-                    </div>
-                </div>
-
-                <div class="result-stat">
-                    <h3>현재 레벨</h3>
-                    <div style="display: flex; gap: 10px; margin-top: 8px;">
-                        <span class="tier-badge" id="tierBadge">Analyst</span>
-                        <span style="color: #999; font-size: 14px;">Lv. <span id="currentLevel">2</span>/3</span>
-                    </div>
-                </div>
-
-                <div class="result-stat">
-                    <h3>전체 정답률</h3>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="overallProgressFill" style="width: 85%;">85%</div>
-                    </div>
-                </div>
-
-                <div id="levelUpInfo" class="level-info" style="display: none;">
-                    <div class="level-info-title">🎊 축하합니다! 레벨이 상승했습니다!</div>
-                    <div class="level-info-text" id="levelUpMessage">
-                        Analyst 레벨에 도달했습니다! 예금이자 +0.1% 혜택권을 획득했습니다.
-                    </div>
-                </div>
-
-                <div id="nextLevelInfo" class="next-level-info">
-                    <div class="next-level-info-title">📈 다음 레벨까지</div>
-                    <div class="next-level-progress">
-                        <div class="next-level-fill" id="nextLevelFill" style="width: 56%;"></div>
-                    </div>
-                    <div style="margin-top: 8px; color: #1565C0; font-size: 12px;">
-                        필요: <span id="pointsNeeded">20</span>P
-                    </div>
-                </div>
-            </div>
-
-            <!-- 보상 -->
-            <div class="result-card">
-                <h2 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #E1545A; padding-bottom: 10px;">
-                    🎁 레벨별 보상
-                </h2>
-
-                <div class="rewards-section">
-                    <div class="rewards-title">현재 가능한 혜택</div>
-                    <div class="reward-item">
-                        <span>Rookie</span>
-                        <span class="reward-value">기본 (Lv.1)</span>
-                    </div>
-                    <div class="reward-item">
-                        <span>Analyst</span>
-                        <span class="reward-value">이자 +0.1% ✓</span>
-                    </div>
-                    <div class="reward-item">
-                        <span>Banker</span>
-                        <span class="reward-value">이자 +0.2% (500P+)</span>
-                    </div>
-                </div>
-
-                <div style="margin-top: 15px; padding: 15px; background: #F0F0F0; border-radius: 8px;">
-                    <p style="color: #666; font-size: 13px; margin: 0;">
-                        💡 <strong>팁:</strong> 매일 퀘스트를 완료하고 포인트를 모아 Banker 레벨에 도달하세요!
-                    </p>
-                </div>
-            </div>
-
-            <!-- 버튼 -->
-            <div class="button-section">
-                <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
-                <button class="btn btn-primary" onclick="reTakeQuiz()">내일 다시 풀기 →</button>
             </div>
         </div>
     </div>
 </main>
 
 <!-- Footer -->
-<footer>
-    <section class="footer">
-        <div class="container">
-            <div class="f-link">
-                <a href="#" class="link-active">개인정보처리방침</a>
-                <a href="#">고객정보취급방침</a>
-                <a href="#">보호금융상품등록부</a>
-                <a href="#">경영공시</a>
-                <a href="#">상품공시실</a>
-                <a href="#">전자민원접수</a>
-                <a href="#">전자금융이용자보호수칙</a>
-                <a href="#">전자금융사기피해금환급제도</a>
-                <a href="#">위치기반서비스 이용약관</a>
-            </div>
-            <div class="f-number">
-                고객센터<strong>1588-6200, 1544-6200</strong>, 해외<strong>+82-2-1588-6200</strong>
-            </div>
-            <div class="f-copy">COPYTRIGHT © 2014 BUSANBANK. ALL RIGHTS RESERVED.</div>
-            <button id="topBtn" class="top-btn" aria-label="맨 위로 이동">
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m17 11-5-5-5 5"/>
-                    <path d="m17 18-5-5-5 5"/>
-                </svg>
-            </button>
-        </div>
-    </section>
-</footer>
+<div th:replace="~{_footer :: footerFragment(${appInfo})}"></div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         loadResultData();
+
+        // 초기 랭킹 로드 (수정자: 진원, 2025-11-28)
+        // WebSocket 제거, REST API만 사용
+        setTimeout(() => {
+            loadInitialRanking();
+        }, 1000);
+
+        // 버튼 이벤트 리스너 등록
+        document.getElementById('backBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            goBack();
+        });
+
+        document.getElementById('retakeBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            reTakeQuiz();
+        });
     });
 
     function loadResultData() {
-        const userId = new URLSearchParams(window.location.search).get('userId') ||
-            sessionStorage.getItem('userId') || 1;
-
-        fetch(`/api/quizzes/result?userId=${userId}`)
-            .then(response => response.json())
+        console.log('=== Loading Result Data ===');
+        fetch(`/busanbank/api/quiz/result`)
+            .then(response => {
+                console.log('Result response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Result response:', data);
                 if (data.success) {
+                    console.log('Result data.data:', data.data);
                     displayResult(data.data);
+                } else {
+                    console.error('Result failed:', data.message);
+                    alert(data.message || '결과 조회에 실패했습니다.');
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Result fetch error:', error);
+                alert('오류가 발생했습니다.');
+            });
     }
 
     function displayResult(result) {
-        // 기본 통계
-        document.getElementById('earnedPoints').textContent = result.earnedPoints;
-        document.getElementById('finalScore').textContent = result.earnedPoints;
-        document.getElementById('correctCount').textContent = result.correctCount;
-        document.getElementById('incorrectCount').textContent = result.incorrectCount;
-        document.getElementById('correctRate').textContent = result.correctRate;
-        document.getElementById('timeSpent').textContent = result.timeSpent;
+        console.log('=== Display Result ===');
+        console.log('Full result object:', result);
+        console.log('earnedPoints value:', result.earnedPoints);
+        console.log('todayCorrectCount value:', result.todayCorrectCount);
+        console.log('todayIncorrectCount value:', result.todayIncorrectCount);
+        console.log('todayCorrectRate value:', result.todayCorrectRate);
 
-        // 누적 통계
-        document.getElementById('totalPoints').textContent = result.totalPoints;
-        document.getElementById('currentLevel').textContent = result.newTier === 'Banker' ? '3' :
-            result.newTier === 'Analyst' ? '2' : '1';
+        // 오늘의 퀴즈 결과 (수정자: 진원, 2025-11-28)
+        const earnedPoints = result.earnedPoints !== undefined && result.earnedPoints !== null ? result.earnedPoints : 0;
+        const todayCorrect = result.todayCorrectCount !== undefined && result.todayCorrectCount !== null ? result.todayCorrectCount : 0;
+        const todayIncorrect = result.todayIncorrectCount !== undefined && result.todayIncorrectCount !== null ? result.todayIncorrectCount : 0;
+        const todayRate = result.todayCorrectRate !== undefined && result.todayCorrectRate !== null ? result.todayCorrectRate : 0;
+
+        console.log('Parsed earnedPoints:', earnedPoints);
+        console.log('Parsed todayCorrect:', todayCorrect);
+        console.log('Parsed todayIncorrect:', todayIncorrect);
+        console.log('Parsed todayRate:', todayRate);
+
+        document.getElementById('earnedPoints').textContent = earnedPoints + 'P';
+        document.getElementById('finalScore').textContent = earnedPoints + 'P';
+        document.getElementById('correctCount').textContent = todayCorrect;
+        document.getElementById('incorrectCount').textContent = todayIncorrect;
+        document.getElementById('correctRate').textContent = todayRate + '%';
+        document.getElementById('timeSpent').textContent = result.timeSpent || '0분 0초';
+
+        // 누적 통계 (수정자: 진원, 2025-11-28)
+        document.getElementById('totalPoints').textContent = result.totalPoints || 0;
+        const tier = result.newTier || '새싹';
 
         const tierBadge = document.getElementById('tierBadge');
-        tierBadge.textContent = result.newTier;
-        tierBadge.className = 'tier-badge ' + result.newTier.toLowerCase();
+        tierBadge.textContent = tier;
+        tierBadge.className = 'tier-badge';
 
-        document.getElementById('overallProgressFill').style.width = result.correctRate + '%';
-        document.getElementById('overallProgressFill').textContent = result.correctRate + '%';
+        // 누적 정답/오답 개수
+        document.getElementById('cumulativeCorrect').textContent = result.correctCount || 0;
+        document.getElementById('cumulativeIncorrect').textContent = result.incorrectCount || 0;
+
+        // 전체 정답률 (누적)
+        const overallCorrectRate = result.correctRate || 0;
+        document.getElementById('overallProgressFill').style.width = overallCorrectRate + '%';
+        document.getElementById('overallProgressFill').textContent = overallCorrectRate + '%';
 
         // 레벨 업 정보
         if (result.leveledUp) {
             document.getElementById('levelUpBadge').style.display = 'inline-block';
             document.getElementById('levelUpInfo').style.display = 'block';
-            document.getElementById('levelUpMessage').textContent = result.levelUpMessage;
+            document.getElementById('levelUpMessage').textContent = result.levelUpMessage || '레벨업!';
         }
 
         // 다음 레벨
-        if (result.needMorePoints) {
-            const percent = Math.max(0, ((result.totalPoints - getLevelMinPoints(result.newTier)) /
-                (getLevelMaxPoints(result.newTier) - getLevelMinPoints(result.newTier))) * 100);
+        if (result.needMorePoints && result.pointsNeeded > 0) {
+            const pointsNeeded = result.pointsNeeded || 0;
+            document.getElementById('pointsNeeded').textContent = pointsNeeded;
+            // 진행률 계산은 서버에서 제공하는 데이터 사용
+            const percent = 50; // 기본값
             document.getElementById('nextLevelFill').style.width = percent + '%';
-            document.getElementById('pointsNeeded').textContent = result.pointsNeeded;
         } else {
             document.getElementById('nextLevelInfo').innerHTML = '<div class="next-level-info-title">🏆 최고 레벨에 도달했습니다!</div>';
         }
     }
 
-    function getLevelMinPoints(tier) {
-        if (tier === 'Analyst') return 0;
-        if (tier === 'Banker') return 200;
-        return 0;
-    }
-
-    function getLevelMaxPoints(tier) {
-        if (tier === 'Analyst') return 200;
-        if (tier === 'Banker') return 500;
-        return 200;
-    }
-
     function goBack() {
-        const userId = new URLSearchParams(window.location.search).get('userId') || 1;
-        window.location.href = `/quiz/dashboard?userId=${userId}`;
+        sessionStorage.clear(); // 퀴즈 데이터 초기화
+        window.location.href = '/busanbank/quiz/quizdashboardcomplete';
     }
 
     function reTakeQuiz() {
-        const userId = new URLSearchParams(window.location.search).get('userId') || 1;
-        window.location.href = `/quiz/dashboard?userId=${userId}`;
+        sessionStorage.clear(); // 퀴즈 데이터 초기화
+        window.location.href = '/busanbank/quiz/quizdashboardcomplete';
     }
 
-    // Top 버튼
+    // Top 버튼 (수정: null 체크 추가)
     const topBtn = document.getElementById('topBtn');
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 300) {
-            topBtn.style.display = 'block';
-        } else {
-            topBtn.style.display = 'none';
-        }
-    });
+    if (topBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                topBtn.style.display = 'block';
+            } else {
+                topBtn.style.display = 'none';
+            }
+        });
 
-    topBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        topBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    // WebSocket for real-time ranking (수정: 선언 위치 이동)
+    let rankingSocket = null;
+
+    function connectRankingWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/busanbank/ws/ranking`;
+
+        rankingSocket = new WebSocket(wsUrl);
+
+        rankingSocket.onopen = function() {
+            console.log('Ranking WebSocket connected');
+        };
+
+        rankingSocket.onmessage = function(event) {
+            try {
+                const ranking = JSON.parse(event.data);
+                updateRankingDisplay(ranking);
+            } catch (e) {
+                console.error('Failed to parse ranking data:', e);
+            }
+        };
+
+        rankingSocket.onerror = function(error) {
+            console.error('Ranking WebSocket error:', error);
+        };
+
+        rankingSocket.onclose = function() {
+            console.log('Ranking WebSocket closed, reconnecting in 3s...');
+            setTimeout(connectRankingWebSocket, 3000);
+        };
+    }
+
+    function updateRankingDisplay(ranking) {
+        const rankingList = document.getElementById('rankingList');
+
+        if (!ranking || ranking.length === 0) {
+            rankingList.innerHTML = '<li class="ranking-item" style="justify-content: center; color: #999;">랭킹 데이터가 없습니다</li>';
+            return;
+        }
+
+        rankingList.innerHTML = ranking.map((user, index) => {
+            const rank = index + 1;
+            let rankClass = 'others';
+            if (rank === 1) rankClass = 'top-1';
+            else if (rank === 2) rankClass = 'top-2';
+            else if (rank === 3) rankClass = 'top-3';
+
+            const tierClass = (user.tier || 'Rookie').toLowerCase();
+
+            return `
+                <li class="ranking-item">
+                    <div class="rank-number ${rankClass}">${rank}</div>
+                    <div class="ranking-info">
+                        <div class="ranking-user">User ${user.userId}</div>
+                        <div class="ranking-details">
+                            <span class="ranking-tier ${tierClass}">${user.tier || 'Rookie'}</span>
+                            <span class="ranking-points">${user.totalPoints}P</span>
+                        </div>
+                    </div>
+                </li>
+            `;
+        }).join('');
+    }
+
+    // 초기 랭킹 데이터 로드 (수정자: 진원, 2025-11-28)
+    // 새로운 통합 포인트 랭킹 시스템 사용
+    function loadInitialRanking() {
+        console.log('=== Loading Ranking Data ===');
+        fetch('/busanbank/member/ranking/all?limit=10')
+            .then(response => {
+                console.log('Ranking response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Ranking response data:', data);
+
+                // success 필드가 있는 경우와 없는 경우 모두 처리
+                const rankingData = data.success ? data.data : data;
+                console.log('Ranking array:', rankingData);
+
+                if (rankingData && Array.isArray(rankingData) && rankingData.length > 0) {
+                    console.log('Ranking data found:', rankingData.length, 'items');
+                    console.log('First item:', rankingData[0]);
+
+                    // 데이터 형식 변환 (RankingDTO -> 랭킹 표시용 형식)
+                    const formattedData = rankingData.map(item => ({
+                        userId: item.userName || 'Unknown',
+                        tier: item.levelName || '새싹',
+                        totalPoints: item.points || 0  // 'points' 필드 사용 (수정자: 진원, 2025-11-28)
+                    }));
+
+                    console.log('Formatted ranking data:', formattedData);
+                    updateRankingDisplay(formattedData);
+                } else {
+                    console.warn('No ranking data available');
+                    document.getElementById('rankingList').innerHTML =
+                        '<li class="ranking-item" style="justify-content: center; color: #999;">아직 랭킹 데이터가 없습니다</li>';
+                }
+            })
+            .catch(error => {
+                console.error('Ranking fetch error:', error);
+                document.getElementById('rankingList').innerHTML =
+                    '<li class="ranking-item" style="justify-content: center; color: #999;">랭킹 조회 오류</li>';
+            });
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+        if (rankingSocket) {
+            rankingSocket.close();
+        }
     });
 </script>
 </body>

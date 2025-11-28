@@ -12,106 +12,8 @@
 </head>
 <body>
     <div class="container" style="display: flex;">
-        <div class="main-left">
-            <img th:src="@{/images/admin/Busanbank_CI-W.png}" alt="BNK 부산은행" class="main-logo">
-            <div>
-                <!-- 로그인 상태 -->
-                <div sec:authorize="isAuthenticated()" class="first-line">
-                    <span class="name_sp" sec:authentication="name"></span>
-                    <div class="name-right">
-                        <span class="welcome_sp">환영합니다!</span>
-                        <a th:href="@{/admin/logout}" class="logout_btn">
-                            <img th:src="@{/images/admin/log-out.png}" alt="로그아웃 버튼" class="logout_img">
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 비로그인 상태 -->
-                <div sec:authorize="!isAuthenticated()">
-                    <a th:href="@{/admin/login}" class="login_btn">로그인</a>
-                </div>
-            </div>
-
-            <div class="search-box">
-                <input type="text" id="search_input" placeholder="Search...">
-                <button class="search_btn">
-                    <img  th:src="@{/images/admin/magnifier.png}" alt="검색 버튼" class="search_img">
-                </button>
-            </div>
-
-            <div class="category1">
-                <div class="category1_img_div">
-                    <img th:src="@{/images/admin/cogwheel.png}" alt="환경설정" style="width: 26px;height: 26px;">
-                </div>
-                <span class="category_sp">환경설정</span>
-            </div>
-            <ul class="category1-ul">
-                <li class="category-li"><a href="#" class="category-a">권리자 계정관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">보안 설정</a></li>
-                <li class="category-li"><a href="#" class="category-a">인증서/OTP 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">사이트 기본 설정</a></li>
-                <li class="category-li"><a href="#" class="category-a">정책·약관 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">API 키 / 외부 연동 관리</a></li>
-            </ul>
-
-            <div class="category2">
-                <div class="category2_img_div">
-                    <img th:src="@{/images/admin/banknotes.png}" alt="은행 상품 관리" style="width: 26px;height: 26px;">
-                </div>
-                <span class="category_sp">상품 목록 관리</span>
-            </div>
-            <ul class="category2-ul">
-                <li class="category-li"><a href="#" class="category-a">상품 목록 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">상품 상세 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">상품 약관 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">상품 분류 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">금리·환율 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">상품 가입 현황 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">금융 감정 분석 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">비트코인/금/오일 시세 관리</a></li>
-                <li class="category-li"><a href="#" class="category-a">상품 번역 관리</a></li>
-            </ul>
-
-            <div class="category3">
-                <div class="category3_img_div">
-                    <img th:src="@{/images/admin/user.png}" alt="회원 관리" style="width: 26px;height: 26px;">
-                </div>
-                <span class="category_sp">회원 관리</span>
-            </div>
-            <ul class="category3-ul">
-                <li class="category-li"><a th:href="@{/admin/member/list}" class="category-a">회원 목록 관리</a></li>
-            </ul>
-
-            <div class="category4">
-                <div class="category4_img_div">
-                    <img th:src="@{/images/admin/list.png}" alt="게시판 관리" style="width: 26px;height: 26px;">
-                </div>
-                <span class="category_sp">게시판 관리</span>
-            </div>
-            <ul class="category4-ul">
-                <li class="category-li"><a th:href="@{/admin/report/list}" class="category-a">보도자료 관리</a></li>
-                <li class="category-li"><a th:href="@{/admin/notice/list}" class="category-a">공지사항 관리</a></li>
-                <li class="category-li"><a th:href="@{/admin/event/list}" class="category-a">이벤트 관리</a></li>
-            </ul>
-
-            <div class="category5">
-                <div class="category5_img_div">
-                    <img th:src="@{/images/admin/receiver.png}" alt="고객센터 관리" style="width: 26px;height: 26px;">
-                </div>
-                <span class="category_sp">고객센터 관리</span>
-            </div>
-            <ul class="category5-ul">
-                <li class="category-li"><a th:href="@{/admin/faq/list}" class="category-a">FAQ 관리</a></li>
-                <li class="category-li"><a th:href="@{/admin/docu/list}" class="category-a">은행거래 필요서류 관리</a></li>
-                <li class="category-li"><a th:href="@{/admin/counsel/list}" class="category-a">이메일 상담 관리</a></li>
-            </ul>
-
-            <div class="footer_div">
-                <span>COPYRIGHT <br>
-                    © 2014 BUSANBANK. ALL RIGHTS RESERVED.
-                </span>
-            </div>
-        </div>
+        <!-- 왼쪽 사이드바 - Fragment 사용 -->
+        <div th:replace="~{admin/_adminSidebar :: sidebar}"></div>
 
         <div class="main-right">
             <div class="productList_title">
@@ -131,30 +33,38 @@
                     <th>상태</th>
                     <th style="border-radius: 0 5px 0 0;">가입일</th>
                 </tr>
-                <tr class="content_tr detailBtn" th:each="adminMember, stat:${pageResponseDTO.dtoList}">
+                <tr class="content_tr detailBtn" th:each="adminMember, stat:${pageResponseDTO.dtoList}" th:data-userno="${adminMember.userNo}">
                     <td th:text="${stat.index + 1}"></td>
                     <td>[[${adminMember.userNo}]]</td>
                     <td>[[${adminMember.userName}]]</td>
                     <td>[[${adminMember.userId}]]</td>
                     <td>[[${adminMember.hp}]]</td>
                     <td>[[${adminMember.accountNo}]]</td>
-                    <td>₩[[${adminMember.balance}]]</td>
-                    <td>[[${adminMember.regDate}]]</td>
+                    <td>₩[[${#numbers.formatInteger(adminMember.balance, 3, 'COMMA')}]]</td>
+                    <td>[[${adminMember.updatedAt}]]</td>
                     <td style="color:#00B050;" th:text="${adminMember.status == 'A' ? '정상'
                 : adminMember.status == 'W' ? '대기' : '정지'}"></td> <!-- w는 임시 -->
-                    <td>[[${adminMember.updatedAt}]]</td>
+                    <td>[[${adminMember.regDate}]]</td>
                 </tr>
             </table>
 
             <div class="page_div">
                 <ul class="pagenation">
-                    <li><a href="#" class="page2"><span class="prev"></span></a></li>
-                    <li><a href="#" class="page1">1</a></li>
-                    <li><a href="#" class="page2">2</a></li>
-                    <li><a href="#" class="page2">3</a></li>
-                    <li><a href="#" class="page2">...</a></li>
-                    <li><a href="#" class="page2">10</a></li>
-                    <li><a href="#" class="page2"><span class="next"></span></a></li>
+                    <li th:if="${pageResponseDTO.prev}">
+                        <a class="page2" th:href="@{/admin/member/list(pg=${pageResponseDTO.start - 1})}">
+                            <span class="prev"></span>
+                        </a>
+                    </li>
+                    <li>
+                        <th:block th:if="${pageResponseDTO.total > 0}" th:each="num:${#numbers.sequence(pageResponseDTO.start, pageResponseDTO.end)}">
+                            <a th:href="@{/admin/member/list (pg=${num})}" th:class="${num == pageResponseDTO.pg ? 'page1' : 'page2'}">[[${num}]]</a>
+                        </th:block>
+                    </li>
+                    <li th:if="${pageResponseDTO.next}">
+                        <a class="page2" th:href="@{/admin/member/list(pg=${pageResponseDTO.end + 1})}">
+                            <span class="next"></span>
+                        </a>
+                    </li>
                 </ul>
             </div>
 
@@ -172,15 +82,15 @@
                             <div class="form-grid">
                                 <div class="form-row">
                                     <label class="form-label">회원번호</label>
-                                    <div class="form-value highlight-value">10001015</div>
+                                    <div id="modalUserNo" class="form-value highlight-value">10001015</div>
                                 </div>
                                 <div class="form-row">
                                     <label class="form-label">이름</label>
-                                    <div class="form-value">김민수</div>
+                                    <div id="modalUserName" class="form-value">김민수</div>
                                 </div>
                                 <div class="form-row full-width">
                                     <label class="form-label">아이디</label>
-                                    <div class="form-value">minsuKim@bank.com</div>
+                                    <div id="modalUserId" class="form-value">minsuKim@bank.com</div>
                                 </div>
                             </div>
                         </div>
@@ -190,29 +100,29 @@
                             <div class="form-grid">
                                 <div class="form-row">
                                     <label class="form-label">전화번호</label>
-                                    <div class="form-value">010-2345-6789</div>
+                                    <div id="modalHp" class="form-value">010-2345-6789</div>
                                 </div>
                                 <div class="form-row">
                                     <label class="form-label">보유계좌수</label>
-                                    <div class="form-value">1개</div>
+                                    <div id="modalAccountNo" class="form-value">1개</div>
                                 </div>
                                 <div class="form-row">
                                     <label class="form-label">총잔액</label>
-                                    <div class="form-value highlight-value">₩5,820,000</div>
+                                    <div id="modalBalance" class="form-value highlight-value">₩5,820,000</div>
                                 </div>
                                 <div class="form-row">
                                     <label class="form-label">최근접속일</label>
-                                    <div class="form-value">2025.11.07</div>
+                                    <div id="modalUpdatedAt" class="form-value">2025.11.07</div>
                                 </div>
                                 <div class="form-row">
                                     <label class="form-label">상태</label>
                                     <div class="form-value">
-                                        <span class="status-badge">정상</span>
+                                        <span id="modalStatus" class="status-badge">정상</span>
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <label class="form-label">가입일</label>
-                                    <div class="form-value">2022-03-14</div>
+                                    <div id="modalRegDate" class="form-value">2022-03-14</div>
                                 </div>
                             </div>
                         </div>
@@ -222,5 +132,7 @@
 
         </div>
     </div>
+
+
 </body>
 </html>

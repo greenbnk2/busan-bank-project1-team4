@@ -1,7 +1,13 @@
+/*
+    날짜 : 2025/11/21
+    이름 : 오서정
+    내용 : 회원 기능 처리 컨트롤러 작성
+*/
 package kr.co.busanbank.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import kr.co.busanbank.dto.TermDTO;
 import kr.co.busanbank.dto.UsersDTO;
 import kr.co.busanbank.security.AESUtil;
 import kr.co.busanbank.service.EmailService;
@@ -14,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -46,21 +53,31 @@ public class MemberController {
         return "member/register";
     }
 
+    /**
+     * 회원가입 처리
+     * 작성자: 진원, 2025-11-20 (비밀번호 정책 검증 추가)
+     */
     @PostMapping("/register")
-    public String register(UsersDTO usersDTO, HttpServletRequest req) throws Exception {
+    public String register(UsersDTO usersDTO, HttpServletRequest req, Model model) throws Exception {
         log.info(usersDTO.toString());
 
-        Random random = new Random();
+        try {
+            Random random = new Random();
+            int randomInt = random.nextInt(999999999);
+            usersDTO.setUserNo(randomInt);
 
-        int randomInt = random.nextInt(999999999);
+            log.info("usersDTO = {}", usersDTO);
 
-        usersDTO.setUserNo(randomInt);
+            memberService.save(usersDTO);
 
-        log.info("usersDTO = {}", usersDTO);
-
-        memberService.save(usersDTO);
-
-        return "redirect:/member/register/finish";
+            return "redirect:/member/register/finish";
+        } catch (IllegalArgumentException e) {
+            // 비밀번호 정책 위반
+            log.warn("회원가입 실패 - 비밀번호 정책 위반: {}", e.getMessage());
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("usersDTO", usersDTO);
+            return "member/register";
+        }
     }
 
     @GetMapping("/register/finish")
@@ -69,7 +86,10 @@ public class MemberController {
     }
 
     @GetMapping("/signup")
-    public String signup() {
+    public String signup(Model model) {
+        List<TermDTO> terms = memberService.findTermsAll();
+        log.info("terms = {}", terms);
+        model.addAttribute("terms", terms);
         return "member/signup";
     }
 
@@ -165,13 +185,26 @@ public class MemberController {
         return "member/find/changePw";
     }
 
+    /**
+     * 비밀번호 변경 처리
+     * 작성자: 진원, 2025-11-20 (비밀번호 정책 검증 추가)
+     */
     @PostMapping("/find/pw/change")
     public String changePw(@RequestParam("userId") String userId,
-                           @RequestParam("userPw") String userPw) {
+                           @RequestParam("userPw") String userPw,
+                           Model model) {
         log.info("userId: {}, userPw: {}", userId, userPw);
-        memberService.modifyPw(userId, userPw);
 
-        return "redirect:/member/find/pw/result";
+        try {
+            memberService.modifyPw(userId, userPw);
+            return "redirect:/member/find/pw/result";
+        } catch (IllegalArgumentException e) {
+            // 비밀번호 정책 위반
+            log.warn("비밀번호 변경 실패 - 비밀번호 정책 위반: {}", e.getMessage());
+            model.addAttribute("error", e.getMessage());
+            model.addAttribute("userId", userId);
+            return "member/find/changePw";
+        }
     }
 
 
@@ -189,15 +222,21 @@ public class MemberController {
     public ResponseEntity<Map<String, Integer>> getUserCount(@PathVariable("type") String type,
                                                              @PathVariable("value") String value) throws Exception {
         log.info("type = {}, value = {}", type, value);
-        String encryptedValue= AESUtil.encrypt(value);
-        int count = memberService.countUser(type, encryptedValue);
 
+        String queryValue;
+        if ("userId".equals(type)) {
+            queryValue = value;
+        } else {
+            queryValue = AESUtil.encrypt(value); // 암호화
+        }
+
+        int count = memberService.countUser(type, queryValue);
 
         // Json 생성
-        Map<String,Integer> map = Map.of("count", count);
-
+        Map<String, Integer> map = Map.of("count", count);
         return ResponseEntity.ok(map);
     }
+
 
     @PostMapping("/email/send")
     @ResponseBody
@@ -230,5 +269,65 @@ public class MemberController {
         hpService.sendCode(hp); // 조건 맞으면 발송
         return ResponseEntity.ok("인증 코드 발송 완료");
     }
+
+    @GetMapping("/withdraw/finish")
+    public String withdrawFinish() {
+        return "member/withdrawFinish";
+    }
+
+    @GetMapping("/auto")
+    public String auto() {
+        return "member/autoLogout";
+    }
+
+    @GetMapping("/chatbot")
+    public String chatbot() {
+        return "member/chatbotTest";
+    }
+
+
+    /**
+     *  상품 가입용 SMS/이메일 인증 검증 API
+     */
+    @PostMapping("/hp/verify")
+    @ResponseBody
+    public ResponseEntity<Map<String, Boolean>> verifyHp(@RequestBody Map<String,String> req) {
+        String code = req.get("code");
+        boolean verified = hpService.verifyCode(code);
+
+        Map<String, Boolean> result = Map.of("verified", verified);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/email/verify")
+    @ResponseBody
+    public ResponseEntity<Map<String, Boolean>> verifyEmail(@RequestBody Map<String,String> req) {
+        String code = req.get("code");
+        boolean verified = emailService.verifyCode(code);
+
+        Map<String, Boolean> result = Map.of("verified", verified);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 약관 PDF 보기용 페이지 (인쇄 최적화)
+     * 작성자: 진원, 2025-11-26
+     */
+    @GetMapping("/term/{termNo}")
+    public String viewTermPrint(@PathVariable("termNo") int termNo, Model model) {
+        log.info("회원가입 약관 PDF 보기 - termNo: {}", termNo);
+
+        // 약관 조회
+        TermDTO term = memberService.findTermById(termNo);
+
+        if (term == null) {
+            log.warn("약관을 찾을 수 없음 - termNo: {}", termNo);
+            return "redirect:/member/signup";
+        }
+
+        model.addAttribute("term", term);
+        return "member/termPrint";
+    }
+
 }
 

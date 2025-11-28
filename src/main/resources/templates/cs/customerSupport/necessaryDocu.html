@@ -1,43 +1,5 @@
 <div th:replace="~{cs/_head.html}"></div>
-
-
-<div class="container">
-    <div class="breadcrumb">고객센터 &gt; 고객상담 &gt; FAQ(자주하시는질문)</div>
-</div>
-
-<div class="content-wrapper">
-    <aside class="sidebar">
-        <h3>고객상담</h3>
-        <nav>
-            <div class="sidebar-menu">
-                <a th:href="@{/cs/customerSupport/faq}" class="toggle">FAQ(자주하시는질문)</a>
-            </div>
-            <div class="sidebar-menu">
-                <a th:href="@{/cs/customerSupport/necessaryDocu}">(업무별)은행거래<br>필요서류 안내</a>
-            </div>
-            <div class="sidebar-menu">
-                <a th:href="@{/cs/customerSupport/talkCounsel}">TALK상담</a>
-            </div>
-            <div class="sidebar-menu">
-                <a th:href="@{/cs/customerSupport/onlineCounsel}" >온라인상담</a>
-            </div>
-        </nav>
-
-        <div class="sidebar-icons">
-            <div><a th:href="@{/cs/customerSupport/talkCounsel}">
-                <span>💬</span>
-                <p>Talk상담</p>
-            </a></div>
-            <div><a th:href="@{/cs/customerSupport/onlineCounsel}">
-                <span>✉️</span>
-                <p>메일상담</p>
-            </a></div>
-            <div><a th:href="@{/cs/customerSupport/faq}">
-                <span>📄</span>
-                <p>FAQ</p>
-            </a></div>
-        </div>
-    </aside>
+<div th:replace="~{cs/_sidebar :: sidebarFragment}"></div>
 
     <main>
         <h2>은행거래 필요서류안내</h2>
@@ -52,62 +14,130 @@
             </ul>
         </div>
         <section class="searchwords">
-            <div class="searchbar">
+            <form th:action="@{/cs/customerSupport/necessaryDocu}"
+                  method="get"
+                  class="searchbar">
+
                 <label for="search">필요서류 검색</label>
-                <select name="docu-type" id="docu-type">
-                    <option value="docu-title">제목+내용</option>
-                    <option value="docu-title">제목</option>
-                    <option value="dpcu-content">내용</option>
+
+                <select name="searchType" id="docu-type">
+                    <option value="tc"
+                            th:selected="${pageRequestDTO.searchType} == 'tc'">
+                        제목+내용
+                    </option>
+                    <option value="title"
+                            th:selected="${pageRequestDTO.searchType} == 'title'">
+                        제목
+                    </option>
+                    <option value="content"
+                            th:selected="${pageRequestDTO.searchType} == 'content'">
+                        내용
+                    </option>
                 </select>
-                <input type="text" id="search">
-                <button>검색</button>
-            </div>
+
+                <input type="text"
+                       id="search"
+                       name="keyword"
+                       th:value="${pageRequestDTO.keyword}">
+
+                <!-- 선택된 카테고리 유지 -->
+                <input type="hidden" name="cate" th:value="${pageRequestDTO.cate}">
+
+                <button type="submit">검색</button>
+            </form>
         </section>
-        
+
         <section class="top-words">
-            <a href="#">전체</a>
-            <a href="#">수신</a>
-            <a href="#">신탁</a>
-            <a href="#">대출</a>
-            <a href="#">WM</a>
-            <a href="#">카드</a>
-            <a href="#">외환</a>
-            <a href="#">전자금융</a>
+
+            <!-- 전체 -->
+            <a th:href="@{/cs/customerSupport/necessaryDocu}"
+               th:classappend="${pageRequestDTO.cate == null or pageRequestDTO.cate == ''} ? ' active'">
+                전체
+            </a>
+
+            <!-- 코드테이블 카테고리 -->
+            <a th:each="cat : ${docCategories}"
+               th:href="@{/cs/customerSupport/necessaryDocu(cate=${cat.code})}"
+               th:text="${cat.codeName}"
+               th:classappend="${pageRequestDTO.cate == cat.code} ? ' active'">
+            </a>
         </section>
 
         <section class="docu-list">
             <ul>
-                <li>
-                    <a href="#">개인회원 소득증빙(신규/한도상향)필요서류</a>
+                <li th:each="doc : ${pageResponseDTO.dtoList}">
+                    <a th:href="@{/cs/customerSupport/docuView/{docId}(docId=${doc.docId})}"
+                       th:text="${doc.title}">
+                    </a>
                 </li>
-                <li>
-                    <a href="#">개인회원 소득증빙(신규/한도상향)필요서류</a>
-                </li>
-                <li>
-                    <a href="#">개인회원 소득증빙(신규/한도상향)필요서류</a>
-                </li>
-                <li>
-                    <a href="#">개인회원 소득증빙(신규/한도상향)필요서류</a>
-                </li>
-                <li>
-                    <a href="#">개인회원 소득증빙(신규/한도상향)필요서류</a>
+
+                <li th:if="${#lists.isEmpty(pageResponseDTO.dtoList)}">
+                    등록된 필요서류가 없습니다.
                 </li>
             </ul>
         </section>
 
-        <div class="pagination">
-            <a href="#">&laquo;&laquo;</a>   
-            <a href="#">&laquo;</a>         
-            <a href="#" class="active">1</a>
-            <a href="#">2</a>
-            <a href="#">3</a>
-            <a href="#">&raquo;</a>        
-            <a href="#">&raquo;&raquo;</a>  
-        </div>  
+        <div class="pagination" th:if="${pageResponseDTO.total > 0}">
+
+            <!-- 맨앞으로 -->
+            <a th:href="@{/cs/customerSupport/necessaryDocu(
+                    pg=1,
+                    size=${pageResponseDTO.size},
+                    cate=${pageRequestDTO.cate},
+                    searchType=${pageRequestDTO.searchType},
+                    keyword=${pageRequestDTO.keyword})}">
+                &laquo;&laquo;
+            </a>
+
+            <!-- < 한 칸 앞으로 (1페이지에서는 숨김) -->
+            <a th:if="${pageResponseDTO.pg > 1}"
+               th:href="@{/cs/customerSupport/necessaryDocu(
+                    pg=${pageResponseDTO.pg - 1},
+                    size=${pageResponseDTO.size},
+                    cate=${pageRequestDTO.cate},
+                    searchType=${pageRequestDTO.searchType},
+                    keyword=${pageRequestDTO.keyword})}">
+                &laquo;
+            </a>
+
+            <!-- 가운데 숫자 (블럭 기준) -->
+            <a th:each="p : ${#numbers.sequence(pageResponseDTO.start, pageResponseDTO.end)}"
+               th:href="@{/cs/customerSupport/necessaryDocu(
+                    pg=${p},
+                    size=${pageResponseDTO.size},
+                    cate=${pageRequestDTO.cate},
+                    searchType=${pageRequestDTO.searchType},
+                    keyword=${pageRequestDTO.keyword})}"
+               th:text="${p}"
+               th:classappend="${p == pageResponseDTO.pg} ? ' active'">
+            </a>
+
+            <!-- > 한 칸 뒤로 (마지막 페이지에서는 숨김) -->
+            <a th:if="${pageResponseDTO.pg < pageResponseDTO.last}"
+               th:href="@{/cs/customerSupport/necessaryDocu(
+                    pg=${pageResponseDTO.pg + 1},
+                    size=${pageResponseDTO.size},
+                    cate=${pageRequestDTO.cate},
+                    searchType=${pageRequestDTO.searchType},
+                    keyword=${pageRequestDTO.keyword})}">
+                &raquo;
+            </a>
+
+            <!-- >> 마지막 페이지 -->
+            <a th:href="@{/cs/customerSupport/necessaryDocu(
+                    pg=${pageResponseDTO.last},
+                    size=${pageResponseDTO.size},
+                    cate=${pageRequestDTO.cate},
+                    searchType=${pageRequestDTO.searchType},
+                    keyword=${pageRequestDTO.keyword})}">
+                &raquo;&raquo;
+            </a>
+        </div>
     </main>
 </div>
 
 <div th:replace="~{cs/_tail.html}"></div>
+<script th:src="@{/js/cs/sidebar.js}"></script>
 </body>
 </html>
 

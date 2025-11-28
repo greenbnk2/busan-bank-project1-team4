@@ -1,26 +1,41 @@
 package kr.co.busanbank.service;
 
+import kr.co.busanbank.dto.SecuritySettingDTO;
+import kr.co.busanbank.dto.TermDTO;
 import kr.co.busanbank.dto.UsersDTO;
 import kr.co.busanbank.mapper.MemberMapper;
+import kr.co.busanbank.mapper.TermMapper;
 import kr.co.busanbank.security.AESUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+/**
+ * 수정일: 2025-11-20 (보안 설정 적용 - 진원)
+ * 수정일: 2025-11-26 (약관 조회 메서드 추가 - 진원)
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class MemberService {
 
     private final MemberMapper memberMapper;
-
-
+    private final TermMapper termMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final SecuritySettingService securitySettingService;
 
 
+    /**
+     * 회원가입
+     * 작성자: 진원, 2025-11-20 (비밀번호 정책 검증 추가)
+     */
     public void save(UsersDTO userDTO) throws Exception {
+        // 비밀번호 정책 검증
+        validatePassword(userDTO.getUserPw());
 
         String encodedPass = passwordEncoder.encode(userDTO.getUserPw());
         String encodedAccountPass = passwordEncoder.encode(userDTO.getAccountPassword());
@@ -33,10 +48,7 @@ public class MemberService {
         userDTO.setEmail(AESUtil.encrypt(userDTO.getEmail()));
         userDTO.setRrn(AESUtil.encrypt(userDTO.getRrn()));
 
-
-
         log.info("savedUserDTO = {}", userDTO);
-
 
         memberMapper.insertUser(userDTO);
     }
@@ -85,11 +97,65 @@ public class MemberService {
         return memberMapper.findUserPwInfoHp(encryptedName, userId, encryptedHp);
     }
 
+    /**
+     * 비밀번호 변경
+     * 작성자: 진원, 2025-11-20 (비밀번호 정책 검증 추가)
+     */
     public void modifyPw(String userId, String userPw){
+        // 비밀번호 정책 검증
+        validatePassword(userPw);
+
         String encodedPass = passwordEncoder.encode(userPw);
 
         memberMapper.updatePw(userId, encodedPass);
     }
 
+    public List<TermDTO> findTermsAll(){
+        return memberMapper.getTermsAll();
+    }
+
+    /**
+     * 약관 ID로 조회
+     * 작성자: 진원, 2025-11-26
+     */
+    public TermDTO findTermById(int termNo) {
+        return termMapper.selectTermById(termNo);
+    }
+
+    /**
+     * 비밀번호 정책 검증
+     * 작성자: 진원, 2025-11-20
+     */
+    private void validatePassword(String password) {
+        if (password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("비밀번호를 입력해주세요.");
+        }
+
+        try {
+            // DB에서 비밀번호 최소 길이 설정 조회
+            SecuritySettingDTO minLengthSetting = securitySettingService.getSettingByKey("PASSWORD_MIN_LENGTH");
+            if (minLengthSetting != null) {
+                int minLength = Integer.parseInt(minLengthSetting.getSettingvalue());
+
+                if (password.length() < minLength) {
+                    throw new IllegalArgumentException("비밀번호는 최소 " + minLength + "자 이상이어야 합니다.");
+                }
+            }
+        } catch (NumberFormatException e) {
+            log.error("비밀번호 최소 길이 설정 값이 잘못되었습니다: {}", e.getMessage());
+            // 기본값 8자 적용
+            if (password.length() < 8) {
+                throw new IllegalArgumentException("비밀번호는 최소 8자 이상이어야 합니다.");
+            }
+        }
+    }
+
+    /**
+     * 시스템에 비밀번호가 평문으로 오염되서 DB에서 직접 암호화문가지고 오는 거
+     * 작성자: 수진, 2025/11/27
+     */
+//    public String getAccountPasswordFromDB(Long userNo) {
+//        return memberMapper.findAccountPasswordByUserNo(userNo);
+//    }
 
 }
