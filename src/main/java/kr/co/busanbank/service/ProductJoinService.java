@@ -5,6 +5,7 @@ import kr.co.busanbank.dto.ProductJoinRequestDTO;
 import kr.co.busanbank.dto.UserProductDTO;
 import kr.co.busanbank.mapper.UserProductMapper;
 import kr.co.busanbank.security.AESUtil;
+import kr.co.busanbank.mapper.UserCouponMapper;  // ✅ 추가!
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +28,9 @@ public class ProductJoinService {
     private final ProductService productService;
     private final UserProductMapper userProductMapper;
     private final PasswordEncoder passwordEncoder;
+    private final UserCouponMapper userCouponMapper;  // ✅ 추가!
+    // 작성자: 진원, 2025-11-29, 포인트 차감을 위해 PointService 추가
+    private final PointService pointService;
 
     /**
      * 금리 계산 (기본 금리 + 우대 금리)
@@ -153,6 +157,8 @@ public class ProductJoinService {
             log.info("   usedPoints: {} P", joinRequest.getUsedPoints());
             log.info("   pointBonusRate: {}%", joinRequest.getPointBonusRate());
             log.info("   finalApplyRate: {}%", joinRequest.getApplyRate());
+            log.info("   selectedCouponId: {}", joinRequest.getSelectedCouponId());  // ✅ 추가!
+            log.info("   couponBonusRate: {}%", joinRequest.getCouponBonusRate());  // ✅ 추가!
 
             // ✅ 1. 원본 비밀번호 가져오기
             String plainPassword = joinRequest.getAccountPasswordOriginal();
@@ -203,6 +209,54 @@ public class ProductJoinService {
                 log.info("✅ 상품 가입 완료!");
                 log.info("   사용 포인트: {} P", joinRequest.getUsedPoints());
                 log.info("   포인트 금리: {}%", joinRequest.getPointBonusRate());
+
+                // ========================================
+                // 작성자: 진원, 2025-11-29, 포인트 차감 처리 추가
+                // ========================================
+                if (joinRequest.getUsedPoints() != null && joinRequest.getUsedPoints() > 0) {
+                    try {
+                        boolean pointDeducted = pointService.usePoints(
+                                joinRequest.getUserId(),
+                                joinRequest.getUsedPoints(),
+                                "상품 가입 (상품번호: " + joinRequest.getProductNo() + ")"
+                        );
+
+                        if (pointDeducted) {
+                            log.info("✅ 포인트 차감 완료: {} P", joinRequest.getUsedPoints());
+                        } else {
+                            log.warn("⚠️ 포인트 차감 실패: 잔액 부족 또는 오류");
+                            // 포인트 차감 실패 시에도 상품 가입은 유지 (트랜잭션 롤백 안 함)
+                        }
+                    } catch (Exception e) {
+                        log.error("❌ 포인트 차감 중 오류 발생", e);
+                        // 포인트 차감 실패해도 가입은 완료 (트랜잭션 롤백 안 함)
+                    }
+                }
+
+                // ========================================
+                // ✅ 6. 쿠폰 사용 처리 (여기에 추가!)
+                // ========================================
+                if (joinRequest.getSelectedCouponId() != null) {
+                    try {
+                        int couponResult = userCouponMapper.updateUserCouponUsed(
+                                joinRequest.getSelectedCouponId(),
+                                joinRequest.getProductNo()  // ✅ 상품 번호 사용! // INSERT 후 생성된 ID
+                        );
+
+                        if (couponResult > 0) {
+                            log.info("✅ 쿠폰 사용 처리 완료");
+                            log.info("   쿠폰 ID: {}", joinRequest.getSelectedCouponId());
+                            log.info("   쿠폰 금리: {}%", joinRequest.getCouponBonusRate());
+                            log.info("   상품 번호: {}", joinRequest.getProductNo());
+                        } else {
+                            log.warn("⚠️ 쿠폰 사용 처리 실패: 업데이트된 행 없음");
+                        }
+                    } catch (Exception e) {
+                        log.error("❌ 쿠폰 사용 처리 실패", e);
+                        // 쿠폰 처리 실패해도 가입은 완료 (트랜잭션 롤백 안 함)
+                    }
+                }
+
                 log.info("   최종 금리: {}%", joinRequest.getApplyRate());
                 return true;
             } else {
@@ -214,6 +268,7 @@ public class ProductJoinService {
             log.error("❌ 상품 가입 중 오류 발생", e);
             throw e;
         }
+
     }
 
 
