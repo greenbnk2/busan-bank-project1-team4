@@ -1,23 +1,39 @@
+console.log('🔥🔥 OIL TEST LOG 🔥🔥');
+console.log('[oil] script file loaded');
+
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('[oil] DOMContentLoaded');
+
     const CTX       = '/busanbank';
     const STATE_KEY = 'oilEventState';
 
+    // 1) DOM 요소들 먼저 전부 선언
     const modal      = document.getElementById('oilEventModal');
-
-    // 이 페이지에 모달이 없으면 아무 것도 안 함
-    if (!modal) return;
-
     const triggerBtn = document.querySelector('.oil-event-trigger');
-    const closeBtn   = modal.querySelector('.oil-event-close');
-    const gridEl     = modal.querySelector('.oil-grid');
-    const couponBtn  = modal.querySelector('.oil-coupon-btn');
-    const messageEl  = modal.querySelector('.oil-event-message');
+    const closeBtn   = modal ? modal.querySelector('.oil-event-close') : null;
+    const gridEl     = modal ? modal.querySelector('.oil-grid') : null;
+    const couponBtn  = modal ? modal.querySelector('.oil-coupon-btn') : null;
+    const messageEl  = modal ? modal.querySelector('.oil-event-message') : null;
 
+    // 2) 요소 존재 여부 로그
+    console.log('[oil] init elements', {
+        modal: !!modal,
+        triggerBtn: !!triggerBtn,
+        gridEl: !!gridEl,
+        couponBtn: !!couponBtn,
+        messageEl: !!messageEl
+    });
+
+    // 3) 필수 요소 없으면 종료
+    if (!modal || !triggerBtn || !gridEl || !couponBtn || !messageEl) {
+        console.warn('[oil] 필수 요소를 찾지 못했습니다.');
+        return;
+    }
+
+    // 4) 그 다음부터 나머지 로직
     const gridSize   = parseInt(gridEl.dataset.gridSize || '3', 10);
     const totalCells = gridSize * gridSize;
-
-    // 버튼 data-logged-in 으로 로그인 여부 판단
-    const isLoggedIn = triggerBtn?.dataset.loggedIn === 'true';
+    const isLoggedIn = triggerBtn.dataset.loggedIn === 'true';
 
     let answerIndex  = null;
     let clicked      = false;
@@ -106,6 +122,8 @@ document.addEventListener('DOMContentLoaded', function () {
        ----------------------------- */
 
     function openModal() {
+        console.log('[oil] openModal called');
+
         modal.classList.remove('is-hidden');
 
         // 새 게임 시작 시 이전 상태 삭제
@@ -159,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             messageEl.textContent = '🎉 축하합니다! 오일 방울을 찾으셨습니다.';
             messageEl.classList.remove('is-show');
-            void messageEl.offsetWidth;
+            void messageEl.offsetWidth;   // 애니메이션 재실행
             messageEl.classList.add('is-show');
 
             // 로그인 여부와 상관없이, 정답 맞춘 상태는 저장
@@ -216,13 +234,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const data = await res.json();
 
+            // ★ 실패 케이스 (이미 등록 포함)
             if (!data.success) {
                 messageEl.classList.remove('is-show');
-                messageEl.textContent = data.message || '쿠폰 발급에 실패했습니다.';
+                void messageEl.offsetWidth; // 애니메이션 재실행용
+
+                if (data.message && data.message.indexOf('이미 등록된 쿠폰') !== -1) {
+                    // 중복 등록인 경우 사용자에게 조금 더 친절한 문구
+                    messageEl.textContent =
+                        '이미 발급받은 쿠폰입니다.\n마이페이지 > 쿠폰에서 확인해 주세요.';
+                    couponBtn.disabled = true;   // 더 이상 중복 요청 못 하게
+                } else {
+                    messageEl.textContent =
+                        data.message || '쿠폰 발급에 실패했습니다.';
+                }
+
+                messageEl.classList.add('is-show');
                 return;
             }
 
-            // ✅ 성공 메시지 (중앙 팝업)
+            // ✅ 정상 발급
             messageEl.classList.remove('is-show');
             void messageEl.offsetWidth;
             messageEl.textContent = '🎉 쿠폰이 발급되었습니다!';
